@@ -1,0 +1,19 @@
+<!-- templates/XGBoost_analysis.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XGBoost Analysis</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>XGBoost Forecasting Analysis</h1>
+        <img src="{{ image }}" alt="XGBoost Forecast">
+        <br>
+        <a href="{% url 'index' %}">Back to Home</a>
+    </div>
+</body>
+</html>

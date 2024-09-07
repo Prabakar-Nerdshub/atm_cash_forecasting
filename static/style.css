@@ -1,0 +1,25 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-image: url("{% static 'images/background_image.png' %}");
+    background-size: cover; /* This ensures the image covers the entire background */
+    background-position: center; /* This centers the image */
+    background-repeat: no-repeat; /* This prevents the image from repeating */
+}
+
+h1 {
+    color: #333;
+}
+
+form {
+    margin-top: 20px;
+}
+
+label {
+    font-size: 18px;
+}
+
+select, button {
+    font-size: 16px;
+    margin-left: 10px;
+}
