@@ -19,6 +19,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('forecast/', include('forecast.urls')),
+    path('atm_forecasting_api/', include('atm_forecasting_api.urls')),
 ]
 

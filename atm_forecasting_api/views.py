@@ -1,4 +1,4 @@
-# model.py
+# views.py
 
 from django.shortcuts import render, redirect
 import pandas as pd
@@ -9,13 +9,20 @@ import io
 import urllib, base64
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
+import base64
+import urllib.parse
+
+
+def index(request):
+    return render(request, 'index.html')
 
 def redirect_model(request):
-    model = request.GET.get('model')
-    if model == 'XGBoost':
-        return redirect('xgboost_analysis')  # Ensure this URL name matches
-    elif model == 'Prophet':
-        return redirect('prophet_analysis')  # Ensure this URL name matches
+    if request.method == 'POST':
+        selected_model = request.POST.get('model')  # Get selected model from the form
+        if selected_model == 'XGBoost':
+            return redirect('xgboost_analysis')  # Redirect to XGBoost analysis page
+        elif selected_model == 'Prophet':
+            return redirect('prophet_analysis')  # Redirect to Prophet analysis page
     return render(request, 'index.html')
 
 def plot_graph(all_dates, all_values, title):
@@ -125,7 +132,7 @@ def prophet_analysis(request):
     # Forecast
     forecast = model.predict(future)
 
-    # Plot the forecast
+    # Plot the atm_forecasting_api
     fig = plot_plotly(model, forecast)
 
     # Convert plot to HTML string

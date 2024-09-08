@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',  # Ensure this line is present
-    'forecast',
+    'rest_framework',
+    'atm_forecasting_api',
 ]
 
 
