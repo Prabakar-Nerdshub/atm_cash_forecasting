@@ -1,15 +1,12 @@
+// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-
-// Create a theme instance.
-const theme = createTheme();
+import './index.css'; // Importing CSS
+import App from './App'; // Importing the App component
 
 ReactDOM.render(
-  <ThemeProvider theme={theme}>
-    <CssBaseline />
+  <React.StrictMode>
     <App />
-  </ThemeProvider>,
-  document.getElementById('root')
+  </React.StrictMode>,
+  document.getElementById('root')  // This mounts the app into the root div in index.html
 );

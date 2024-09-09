@@ -1,7 +1,9 @@
+// src/App.js
 import React from 'react';
-import './App.css'; // Import the CSS file
+import './App.css'; // Ensure that CSS is imported
 
 const App = () => {
+  console.log("App component is rendered");
   return (
     <div className="dashboard-container">
       <aside className="sidebar">
@@ -27,4 +29,12 @@ const App = () => {
           </section>
           <section id="settings">
             <h2>Settings</h2>
-            <p
+            <p>This is the settings section.</p>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default App;
