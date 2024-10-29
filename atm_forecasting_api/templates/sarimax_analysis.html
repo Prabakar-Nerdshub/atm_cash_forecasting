@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SARIMAX Analysis</title>
+</head>
+<body>
+    <h1>SARIMAX Analysis Results</h1>
+    {% if image_path %}
+        {% load static %}
+        <img src="{% static 'images/sarimax_plot_actual_vs_predicted.png' %}" alt="Actual vs Predicted Plot">
+    {% else %}
+        <p>No image available.</p>
+    {% endif %}
+</body>
+</html>

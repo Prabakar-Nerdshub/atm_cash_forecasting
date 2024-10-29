@@ -1,6 +1,10 @@
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
+    background-image: url("{% static 'images/background_image.png' %}");
+    background-size: cover; /* This ensures the image covers the entire background */
+    background-position: center; /* This centers the image */
+    background-repeat: no-repeat; /* This prevents the image from repeating */
 }
 
 h1 {

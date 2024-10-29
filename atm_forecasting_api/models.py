@@ -1,4 +1,4 @@
-# model.py
+# views.py
 
 from django.shortcuts import render, redirect
 import pandas as pd
@@ -9,13 +9,20 @@ import io
 import urllib, base64
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
+import base64
+import urllib.parse
+
+
+def index(request):
+    return render(request, 'index.html')
 
 def redirect_model(request):
-    model = request.GET.get('model')
-    if model == 'XGBoost':
-        return redirect('xgboost_analysis')  # Ensure this URL name matches
-    elif model == 'Prophet':
-        return redirect('prophet_analysis')  # Ensure this URL name matches
+    if request.method == 'POST':
+        selected_model = request.POST.get('model')  # Get selected model from the form
+        if selected_model == 'XGBoost':
+            return redirect('xgboost_analysis')  # Redirect to XGBoost analysis page
+        elif selected_model == 'Prophet':
+            return redirect('prophet_analysis')  # Redirect to Prophet analysis page
     return render(request, 'index.html')
 
 def plot_graph(all_dates, all_values, title):
@@ -42,7 +49,8 @@ def xgboost_analysis(request):
     period_map = {'day': 1, 'week': 7, 'month': 30}
     future_period = period_map.get(period, 1)
 
-    ds = pd.read_csv('/home/praba/Desktop/ATMcashForecasting/dataFile/AggregatedData.csv')
+    ds = pd.read_csv('/home/praba/Desktop/ATM-Cash-Forecasting/Datafile/atm_cash_demand_single_atm.csv')
+    #/home/praba/Desktop/ATM-Cash-Forecasting/Datafile/atm_cash_demand_single_atm.csv
     ds['Transaction Date'] = pd.to_datetime(ds['Transaction Date'], format='mixed', dayfirst=True)
     ds['Year'] = ds['Transaction Date'].dt.year
     ds['Month'] = ds['Transaction Date'].dt.month
@@ -93,7 +101,7 @@ def prophet_analysis(request):
     future_period = period_map.get(period, 1)
 
     # Load and preprocess data
-    ds = pd.read_csv('/home/praba/Desktop/ATMcashForecasting/dataFile/AggregatedData.csv')
+    ds = pd.read_csv('/home/praba/Desktop/ATM-Cash-Forecasting/Datafile/atm_cash_demand_single_atm.csv')
     ds['Transaction Date'] = pd.to_datetime(ds['Transaction Date'], format='mixed', dayfirst=True)
 
     # Prepare data for Prophet

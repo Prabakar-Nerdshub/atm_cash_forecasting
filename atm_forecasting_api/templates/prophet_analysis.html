@@ -1,21 +1,16 @@
-<!-- templates/prophet_analysis.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prophet Analysis</title>
-    {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
 </head>
 <body>
-    <div class="container">
-        <h1>Prophet Forecasting Analysis</h1>
-        <div>
-            {{ plot|safe }}
-        </div>
-        <br>
-        <a href="{% url 'index' %}">Back to Home</a>
-    </div>
+    <h1>Prophet Analysis Results</h1>
+    {% if image_path %}
+        {% load static %}
+        <img src="{% static 'images/prophet_plot_actual_vs_predicted.png' %}" alt="Actual vs Predicted Plot">
+    {% else %}
+        <p>No image available.</p>
+    {% endif %}
 </body>
 </html>

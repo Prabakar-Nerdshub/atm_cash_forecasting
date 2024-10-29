@@ -10,14 +10,22 @@
 </head>
 <body>
     <h1>Select a Model</h1>
-    <form action="{% url 'redirect_model' %}" method="post">
-        {% csrf_token %}
-        <label for="model">Choose a model:</label>
-        <select name="model" id="model">
-            <option value="XGBoost">XGBoost</option>
-            <option value="Prophet">Prophet</option>
-        </select>
-        <button type="submit">Go</button>
-    </form>
+    <div class="form-container">
+        <form action="{% url 'redirect_model' %}" method="post">
+            {% csrf_token %}
+            <label for="model">Choose a model:</label>
+            <select name="model" id="model">
+                <option value="XGBoost">XGBoost</option>
+                <option value="Prophet">Prophet</option>
+                <option value="LSTM">LSTM</option>
+                <option value="SARIMAX">SARIMAX</option>
+            </select>
+            <button type="submit">Go</button>
+        </form>
+    </div>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
 </body>
 </html>
+

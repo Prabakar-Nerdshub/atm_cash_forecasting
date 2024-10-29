@@ -1,142 +1,214 @@
-# views.py
-
+# backend/atm_forecasting_api/views.py
 from django.shortcuts import render, redirect
 import pandas as pd
-import matplotlib.pyplot as plt
-from prophet import Prophet
-from prophet.plot import plot_plotly
-import io
-import urllib, base64
-import xgboost as xgb
-from sklearn.model_selection import train_test_split
-import base64
-import urllib.parse
+from django.conf import settings
+from atm_forecasting_api.models.XGBoost import xgboost_analysis
+from atm_forecasting_api.models.Prophet import prophet_analysis
+from atm_forecasting_api.models.LSTM import lstm_analysis
+from atm_forecasting_api.models.Sarimax import sarimax_analysis
+import os
+from rest_framework.views import APIView
+from rest_framework.response import Response
+import pandas as pd
+import json
+from django.http import JsonResponse
+import pandas as pd
+import os
+from django.conf import settings  # Make sure to import settings
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+import pandas as pd
+import numpy as np
+
+
+@api_view(['GET'])
+def get_forecast_data(request):
+    dataset = request.GET.get('dataset')
+
+    # Mock example: Load the dataset (replace with your actual dataset handling)
+    if dataset == 'atm_cash_demand_single_atm':
+        # Example data processing logic (replace with your actual ML model processing)
+        rmse_value = 12.34  # Replace with actual RMSE calculation
+        forecast_amount = 123456  # Replace with actual forecast value
+
+        return Response({
+            'rmse': rmse_value,
+            'forecast_amount': forecast_amount
+        })
+
+    return Response({'error': 'Dataset not found'}, status=404)
+
+def fetch_data(request):
+    dataset1 = request.GET.get('dataset', None)
+
+    # Define the path to your CSV files
+    base_path = os.path.join(settings.BASE_DIR, 'Datafile')  # Correct path for Datafile folder
+
+    # Fetch your data based on the dataset_name
+    if dataset1:
+        try:
+            # Load the relevant CSV file
+            file_path = os.path.join(base_path, f'{dataset1}.csv')  # This assumes your CSV files are named after the dataset name
+            data_frame = pd.read_csv('/home/praba/Desktop/ATM-Cash-Forecasting/Datafile/atm_cash_demand_single_atm.csv')
+
+            # Convert the DataFrame to a dictionary
+            data = data_frame.to_dict(orient='records')  # This will give a list of dictionaries
+            return JsonResponse(data, safe=False)  # safe=False allows a list response
+        except FileNotFoundError:
+            return JsonResponse({'error': 'Dataset not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Dataset not specified'}, status=400)
+
+
+def redirect_model(request):
+    if request.method == 'POST':
+        selected_model = request.POST.get('model')
+
+        # Logic to redirect to the appropriate analysis view
+        if selected_model == 'XGBoost':
+            return redirect('xgboost_analysis')  # Redirect to XGBoost analysis view
+        elif selected_model == 'Prophet':
+            return redirect('prophet_analysis')  # Redirect to Prophet analysis view
+        elif selected_model == 'LSTM':
+            return redirect('lstm_analysis')  # Redirect to LSTM analysis view
+        elif selected_model == 'SARIMAX':
+            return redirect('sarimax_analysis')  # Redirect to SARIMAX analysis view
+
+    # If the method is not POST or the selection is invalid, render the index page again
+    return render(request, 'index.html', {'error': 'Invalid selection'})
 
 
 def index(request):
     return render(request, 'index.html')
 
-def redirect_model(request):
-    if request.method == 'POST':
-        selected_model = request.POST.get('model')  # Get selected model from the form
-        if selected_model == 'XGBoost':
-            return redirect('xgboost_analysis')  # Redirect to XGBoost analysis page
-        elif selected_model == 'Prophet':
-            return redirect('prophet_analysis')  # Redirect to Prophet analysis page
-    return render(request, 'index.html')
 
-def plot_graph(all_dates, all_values, title):
-    plt.figure(figsize=(12, 8))
-    plt.plot(all_dates, all_values, label='Predicted', color='red')
-    plt.xlabel('Transaction Date')
-    plt.ylabel('Total amount Withdrawn')
-    plt.title(title)
-    plt.legend()
-    plt.xticks(rotation=45)
-    plt.grid(True)
+def xgboost_view(request):
+    output_dir = os.path.join('static', 'images')  # Updated output directory
 
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    image_png = buffer.getvalue()
-    buffer.close()
-    image_base64 = base64.b64encode(image_png).decode('utf-8')
-    image_uri = 'data:image/png;base64,' + urllib.parse.quote(image_base64)
-    return image_uri
+    # Call the xgboost_analysis function
+    image_path, rmse = xgboost_analysis(period=30, output_dir=output_dir)
 
-def xgboost_analysis(request):
-    period = request.GET.get('period', 'day')
-    period_map = {'day': 1, 'week': 7, 'month': 30}
-    future_period = period_map.get(period, 1)
+    # Handle case where analysis might fail
+    if image_path is None:
+        return render(request, 'error.html', {'error_message': 'Error occurred during XGBoost analysis.'})
 
-    ds = pd.read_csv('/home/praba/Desktop/ATMcashForecasting/dataFile/AggregatedData.csv')
-    ds['Transaction Date'] = pd.to_datetime(ds['Transaction Date'], format='mixed', dayfirst=True)
-    ds['Year'] = ds['Transaction Date'].dt.year
-    ds['Month'] = ds['Transaction Date'].dt.month
-    ds['Day'] = ds['Transaction Date'].dt.day
-    ds['DayOfWeek'] = ds['Transaction Date'].dt.dayofweek
+    # Just send the relative path to the template
+    relative_image_path = os.path.relpath(image_path, start='static/')
 
-    X = ds[['Year', 'Month', 'Day', 'DayOfWeek']]
-    y = ds['Total amount Withdrawn']
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
-
-    xg_reg = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=200, max_depth=4, learning_rate=0.05)
-    xg_reg.fit(X_train, y_train)
-
-    y_pred = xg_reg.predict(X_test)
-
-    last_date = ds['Transaction Date'].max()
-    future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=future_period, freq='D')
-    future_dates_series = pd.Series(future_dates, name='Transaction Date')
-
-    future_df = pd.DataFrame({
-        'Year': future_dates_series.dt.year,
-        'Month': future_dates_series.dt.month,
-        'Day': future_dates_series.dt.day,
-        'DayOfWeek': future_dates_series.dt.dayofweek
+    return render(request, 'XGBoost_analysis.html', {
+        'image_uri': relative_image_path,
+        'rmse': rmse
     })
-    future_pred = xg_reg.predict(future_df)
-
-    all_dates = pd.concat(
-        [ds['Transaction Date'], X_test.index.to_series().map(lambda idx: ds['Transaction Date'].iloc[idx]),
-         future_dates_series], ignore_index=True)
-    all_values = pd.concat([y, pd.Series(y_pred, index=X_test.index), pd.Series(future_pred)], ignore_index=True)
-
-    image_uri = plot_graph(all_dates, all_values, f'XGBoost: Actual, Predicted, and Future Predictions ({period.capitalize()})')
-
-    return render(request, 'XGBoost_analysis.html', {'image': image_uri})
 
 
-from prophet import Prophet
-from prophet.plot import plot_plotly
+def prophet_view(request):
+    output_directory = os.path.join(settings.BASE_DIR, 'static', 'images')  # Define your output directory
+
+    # Call the prophet_analysis function
+    image_path = prophet_analysis(
+        start_date='2024-01-01',  # Start date for the analysis
+        end_date='2025-01-01',    # End date for the analysis
+        output_dir=output_directory
+    )
+
+    # Render the template and pass the image path
+    return render(request, 'prophet_analysis.html', {'image_path': image_path})
+
+
+def lstm_view(request):
+    output_dir = 'path_to_your_output_directory'
+    image_path, rmse = lstm_analysis(period=30, output_dir=output_dir)
+
+    if image_path is None:
+        return render(request, 'error.html', {'error_message': 'Error occurred during LSTM analysis.'})
+
+    return render(request, 'LSTM_analysis.html', {
+        'image_path': image_path,
+        'rmse': rmse
+    })
+
+
+from django.shortcuts import render
+import os
+
+def sarimax_view(request):
+    start_date = '2022-01-01'
+    end_date = '2023-01-01'
+    output_dir = os.path.join(settings.BASE_DIR, 'static', 'images')
+
+    # Call your SARIMAX analysis function
+    image_path = sarimax_analysis(start_date, end_date, output_dir)
+
+    # Render the template to display the graph
+    return render(request, 'sarimax_analysis.html', {'image_path': image_path})
 
 
 
-def prophet_analysis(request):
-    # Get the selected period from the GET parameters
-    period = request.GET.get('period', 'day')
-    period_map = {'day': 1, 'week': 7, 'month': 30}
-    future_period = period_map.get(period, 1)
 
-    # Load and preprocess data
-    ds = pd.read_csv('/home/praba/Desktop/ATMcashForecasting/dataFile/AggregatedData.csv')
-    ds['Transaction Date'] = pd.to_datetime(ds['Transaction Date'], format='mixed', dayfirst=True)
+class XGBoostGraphData(APIView):
+    def get(self, request):
+        # Replace this with your actual logic to generate or retrieve the graph data
+        labels = ["Jan", "Feb", "Mar", "Apr"]  # Replace with your actual labels
+        values = [20, 30, 40, 50]  # Replace with your actual data values
 
-    # Prepare data for Prophet
-    df_prophet = ds[['Transaction Date', 'Total amount Withdrawn']].copy()
-    df_prophet.rename(columns={'Transaction Date': 'ds', 'Total amount Withdrawn': 'y'}, inplace=True)
+        data = {
+            "labels": labels,
+            "values": values
+        }
+        return Response(data)
 
-    # Ensure 'ds' column is datetime
-    df_prophet['ds'] = pd.to_datetime(df_prophet['ds'])
 
-    # Ensure 'y' column is numeric
-    df_prophet['y'] = pd.to_numeric(df_prophet['y'], errors='coerce')
+class ProphetGraphData(APIView):
+    def get(self, request):
+        # Replace this with your actual logic to generate or retrieve the graph data for Prophet
+        labels = ["Jan", "Feb", "Mar", "Apr"]
+        values = [10, 20, 30, 40]
 
-    # Check for NaN values in the DataFrame
-    df_prophet = df_prophet.dropna()
+        data = {
+            "labels": labels,
+            "values": values
+        }
+        return Response(data)
 
-    # Split data into train and test sets
-    train_size = int(len(df_prophet) * 0.8)
-    train = df_prophet[:train_size]
-    test = df_prophet[train_size:]
 
-    # Initialize and fit the Prophet model
-    model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=False)
-    model.fit(train)
+class LSTMGraphData(APIView):
+    def get(self, request):
+        # Replace this with your actual logic to generate or retrieve the graph data for LSTM
+        labels = ["Jan", "Feb", "Mar", "Apr"]
+        values = [15, 25, 35, 45]
 
-    # Make future dataframe
-    future_periods = future_period + len(test)
-    future = model.make_future_dataframe(periods=future_periods)
+        data = {
+            "labels": labels,
+            "values": values
+        }
+        return Response(data)
 
-    # Forecast
-    forecast = model.predict(future)
 
-    # Plot the atm_forecasting_api
-    fig = plot_plotly(model, forecast)
+class SarimaxGraphData(APIView):
+    def get(self, request):
+        # Replace this with your actual logic to generate or retrieve the graph data for SARIMAX
+        labels = ["Jan", "Feb", "Mar", "Apr"]
+        values = [12, 22, 32, 42]
 
-    # Convert plot to HTML string
-    plot_html = fig.to_html(full_html=False)
+        data = {
+            "labels": labels,
+            "values": values
+        }
+        return Response(data)
 
-    return render(request, 'prophet_analysis.html', {'plot': plot_html})
+from django.http import JsonResponse
+import json
+
+def plot_data(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        dataset = data.get('dataset', None)
+        if dataset:
+            # Process the dataset and return a response
+            return JsonResponse({'status': 'success', 'message': f'Dataset {dataset} processed.'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'No dataset provided.'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
 

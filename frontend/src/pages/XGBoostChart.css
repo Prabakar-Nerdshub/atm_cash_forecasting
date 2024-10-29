@@ -1,0 +1,42 @@
+// src/App.js
+import React, { useState } from 'react';
+import XGBoostChart from './components/XGBoostChart'; // Import your chart component
+
+const App = () => {
+  const [modelResults, setModelResults] = useState(null);
+  const [xgboostData, setXGBoostData] = useState({ labels: [], values: [] });
+
+  const handleRunModels = async () => {
+    // Call your API to run models and get results
+    const results = await runModels(); // Your function to run models
+    setModelResults(results);
+
+    // Fetch your XGBoost graph data
+    const xgboostGraphData = await fetchXGBoostGraphData(); // Implement this function
+    setXGBoostData(xgboostGraphData);
+  };
+
+  const fetchXGBoostGraphData = async () => {
+    // Fetch your XGBoost graph data from the backend
+    const response = await fetch('/api/xgboost-graph-data'); // Update with your actual API
+    return await response.json(); // Adjust based on your data structure
+  };
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>Dataset Analysis Dashboard</h1>
+        <button onClick={handleRunModels}>Run All Models</button>
+      </header>
+      {modelResults && (
+        <div className="results-container">
+          <h2>Model Results</h2>
+          {/* Add logic to display results for all models */}
+          <XGBoostChart data={xgboostData} /> {/* Pass the XGBoost data to the chart */}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;

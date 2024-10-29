@@ -1,4 +1,3 @@
-<!-- templates/XGBoost_analysis.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,14 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XGBoost Analysis</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
 </head>
 <body>
     <div class="container">
         <h1>XGBoost Forecasting Analysis</h1>
-        <img src="{{ image }}" alt="XGBoost Forecast">
+        {% if image_uri %}
+            <img src="{% static image_uri %}" alt="XGBoost Forecast">  <!-- Correctly referencing the image URI -->
+            <p>RMSE: {{ rmse }}</p>
+        {% else %}
+            <p>No forecast data available.</p>
+        {% endif %}
         <br>
-        <a href="{% url 'index' %}">Back to Home</a>
+        <a href="{% url 'index' %}">Back to Index</a>
     </div>
 </body>
 </html>

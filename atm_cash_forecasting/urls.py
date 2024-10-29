@@ -15,10 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 #project/urls
+# atm_forecasting/urls.py
 from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('atm_forecasting_api/', include('atm_forecasting_api.urls')),
+    path('admin/', admin.site.urls),
+    path('api/', include('atm_forecasting_api.urls')),  # Ensure your API URLs are included
+
 ]
+
 

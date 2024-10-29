@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSTM Analysis</title>
+</head>
+<body>
+    <h1>LSTM Analysis Results</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="period">Select Period:</label>
+        <select name="period" id="period">
+            <option value="day">Day</option>
+            <option value="week">Week</option>
+            <option value="month">Month</option>
+        </select>
+        <button type="submit">Analyze</button>
+    </form>
+
+    {% if image_uri %}
+        <h2>Forecast Graph:</h2>
+        <img src="{{ image_uri }}" alt="Forecast Graph">
+    {% endif %}
+</body>
+</html>
